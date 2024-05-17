@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hello-world-deployment
+  namespace: grafana-test-owen
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hello-world
+  template:
+    metadata:
+      labels:
+        app: hello-world
+    spec:
+      containers:
+      - name: hello-world-container
+        image: acragriprodukw.azurecr.io/grafana-dotnet-helloworld:0.3
+        env:
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: "http://grafana-k8s-monitoring-grafana-agent.grafana.svc.cluster.local:4318"
+        - name: OTEL_SERVICE_NAME
+          value: "hello-world"
+        - name: OTEL_RESOURCE_ATTRIBUTES
+          value: "service.namespace=grafanatest,deployment.environment=production,service.instance.id=billing-4334,service.version=1.0"
+        - name: OTEL_DOTNET_AUTO_HOME
+          value: "/otel-dotnet-auto"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hello-world-service
+  namespace: grafana-test-owen
+spec:
+  selector:
+    app: hello-world
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
